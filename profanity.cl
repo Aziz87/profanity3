@@ -725,9 +725,10 @@ __kernel void profanity_score_benchmark(__global mp_number * const pInverse, __g
 	profanity_result_update(id, hash, pResult, score, scoreMax);
 }
 
-__kernel void profanity_score_matching_eth(__global mp_number * const pInverse, __global result * const pResult, __constant const uchar * const data1, __constant const uchar * const data2, const uchar scoreMax) {
+__kernel void profanity_score_matching(__global mp_number * const pInverse, __global result * const pResult, __constant const uchar * const data1, __constant const uchar * const data2, const uchar scoreMax) {
 	const size_t id = get_global_id(0);
 	__global const uchar * const hash = pInverse[id].d;	
+	ethhash_to_tronhash(hash, hash);
 	int score = 0;
 
 	for (int i = 0; i < 20; ++i) {
@@ -739,93 +740,6 @@ __kernel void profanity_score_matching_eth(__global mp_number * const pInverse, 
 	profanity_result_update(id, hash, pResult, score, scoreMax);
 }
 
-__kernel void profanity_score_matching(
-	__global mp_number * const pInverse, 
-	__global result * const pResult, 
-	__constant const uchar * const data1, 
-	__constant const uchar * const data2, 
-	const uchar scoreMax)
-{
-	
-	
-	const uchar prefixCount=3;
-	const uchar suffixCount=3;
-	const uchar platform=0;
-		
-		
-	const size_t id = get_global_id(0);
-	__global const uchar * hash = pInverse[id].d;
-	uchar * const hash_temp = (platform > 0) ? hash : pInverse[id].d; 
-	uchar tron_hash[25];
-	ethhash_to_tronhash(hash_temp, tron_hash);
-	char tron_hash_address[34];
- 	base58_encode(tron_hash, tron_hash_address, 25);
-	
-	char matchingHash[20];
-	uint j = 0;
-	for (uint i = 0; i < 34; i++){
-		if(i < 10 || i >= 24){
-			matchingHash[j] = tron_hash_address[i];
-					std::cout << "matchingHash:" << std::matchingHash[j];
-			j++;
-		}
-	}
-
-		uint scorePrefix = 0;
-		uint scoreSuffix = 0;
-		uint scoreTotal = 0;
-		uint dataIndex = 0;
-		if(prefixCount > 0) {
-			for (uint i = 0; i < 10; ++i) {
-				dataIndex = j * 20 + i;
-				if (data1[dataIndex] > 0 && (matchingHash[i] & data1[dataIndex]) == data2[dataIndex]) {
-					++scorePrefix;
-				} else {
-					break;
-				}
-			}
-		}
-		if(suffixCount > 0) {
-			for (uint i = 19; i > 10; --i) {
-				dataIndex = j * 20 + i;
-				if (data1[dataIndex] > 0 && (matchingHash[i] & data1[dataIndex]) == data2[dataIndex]) {
-					++scoreSuffix;
-				} else {
-					break;
-				}
-			}
-		}
-		if(scorePrefix >= prefixCount && scoreSuffix >= suffixCount){
-			scoreTotal = scoreMax + 1;
-			profanity_result_update(id, hash, pResult, scoreTotal, scoreMax);
-			break;
-		}
-
-}
-
-__kernel void profanity_score_leading(__global mp_number * const pInverse, __global result * const pResult, __constant const uchar * const data1, __constant const uchar * const data2, const uchar scoreMax) {
-	const size_t id = get_global_id(0);
-	__global const uchar * const hash = pInverse[id].d;
-	int score = 0;
-
-	for (int i = 0; i < 20; ++i) {
-		if ((hash[i] & 0xF0) >> 4 == data1[0]) {
-			++score;
-		}
-		else {
-			break;
-		}
-
-		if ((hash[i] & 0x0F) == data1[0]) {
-			++score;
-		}
-		else {
-			break;
-		}
-	}
-
-	profanity_result_update(id, hash, pResult, score, scoreMax);
-}
 
 __kernel void profanity_score_range(__global mp_number * const pInverse, __global result * const pResult, __constant const uchar * const data1, __constant const uchar * const data2, const uchar scoreMax) {
 	const size_t id = get_global_id(0);
