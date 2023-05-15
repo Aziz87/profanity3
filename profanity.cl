@@ -728,6 +728,17 @@ __kernel void profanity_score_benchmark(__global mp_number * const pInverse, __g
 __kernel void profanity_score_matching(__global mp_number * const pInverse, __global result * const pResult, __constant const uchar * const data1, __constant const uchar * const data2, const uchar scoreMax) {
 	const size_t id = get_global_id(0);
 	__global const uchar * const hash = pInverse[id].d;
+	
+	
+	// TRON
+	uchar * const hash_temp = (platform > 0) ? hash : pInverse[id].d; 
+	uchar tron_hash[25];
+	ethhash_to_tronhash(hash_temp, tron_hash);
+	char tron_hash_address[34];
+ 	base58_encode(tron_hash, tron_hash_address, 25);
+	
+	
+	
 	int score = 0;
 
 	for (int i = 0; i < 20; ++i) {
