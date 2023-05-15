@@ -855,3 +855,58 @@ __kernel void profanity_score_doubles(__global mp_number * const pInverse, __glo
 
 	profanity_result_update(id, hash, pResult, score, scoreMax);
 }
+
+
+
+void ethhash_to_tronhash(const uchar *ethhash, uchar *tronhash) {
+  uchar hash0[21];
+  uchar hash1[32];
+  uchar hash2[32];
+  for (uint i = 0; i < 20; i++) {
+    hash0[i + 1] = ethhash[i];
+  }
+  hash0[0] = 65;
+  sha256(sizeof(hash0), hash0, hash1);
+  sha256(sizeof(hash1), hash1, hash2);
+  for (uint i = 0; i < 21; i++) {
+    tronhash[i] = hash0[i];
+  }
+  tronhash[21] = hash2[0];
+  tronhash[22] = hash2[1];
+  tronhash[23] = hash2[2];
+  tronhash[24] = hash2[3];
+}
+
+__constant char alphabet[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+void base58_encode(const uchar *input, char *output, const int input_len) {
+  __private uint digits[32] = {0};
+  int digit_count = 1;
+  for (int i = 0; i < input_len; i++) {
+    uint carry = input[i];
+    for (int j = 0; j < digit_count; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry /= 58;
+    }
+    while (carry) {
+      digits[digit_count++] = carry % 58;
+      carry /= 58;
+    }
+  }
+
+  int zero_count = 0;
+  while (zero_count < input_len && input[zero_count] == 0) {
+    zero_count++;
+  }
+  int output_idx = 0;
+  output[output_idx++] = alphabet[digits[digit_count - 1]];
+  for (int i = digit_count - 2; i >= 0; i--) {
+    if (zero_count > 0) {
+      zero_count--;
+    } else {
+      output[output_idx++] = alphabet[digits[i]];
+    }
+  }
+  output[output_idx] = '\0';
+}
