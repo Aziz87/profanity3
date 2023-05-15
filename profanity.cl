@@ -766,6 +766,7 @@ __kernel void profanity_score_matching(
 	for (uint i = 0; i < 34; i++){
 		if(i < 10 || i >= 24){
 			matchingHash[j] = tron_hash_address[i];
+					std::cout << "matchingHash:" << std::matchingHash[j];
 			j++;
 		}
 	}
