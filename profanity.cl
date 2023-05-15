@@ -750,7 +750,7 @@ __kernel void profanity_score_matching(
 	
 	const uchar prefixCount=3;
 	const uchar suffixCount=3;
-	const uchar platform=1;
+	const uchar platform=0;
 		
 		
 	const size_t id = get_global_id(0);
